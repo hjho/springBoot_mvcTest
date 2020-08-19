@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html
+	xmlns:th="http://www.thymeleaf.org" 
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Thymleaf</title>
+<script type="text/javascript" src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<style>
+	.pagination {
+		display: inline-block;
+	}
+	.pagination a {
+		color: black;
+		float: left;
+		padding: 8px 16px;
+		text-decoration: none;
+		transition: background-color .3s;
+		border: 1px solid #ddd;
+	}
+	.pagination a.active {
+		background-color: #4CAF50;
+		color: white;
+		border: 1px solid #4CAF50;
+	}
+	.pagination a:hover:not(.active) { background-color: #ddd;}
+	#empTable {
+		border-collapse: collapse;
+		width: 80%;
+		margin: 20px;
+	}
+	tr:nth-child(even){ background-color: #f2f2f2 }
+	#empTable, th, td {
+	 	border: 1px solid #ddd;
+	 	text-align: center;
+	}
+	th { background-color: #4CAF50; color: white; }
+</style>
+</head>
+<body>
+	<div align="center">
+		<h2>Emp Table</h2>
+		<!-- 페이지 이동 버튼 부분   -->
+		<div>
+			<button onclick="empInsert()">사원 등록 페이지</button>
+			<button onclick="empUpdate()">사원 수정 페이지</button>
+			<button onclick="empDelete()">사원 삭제</button>
+		</div>
+		<!-- EMP TABLE 부분 -->
+		<table id="empTable" >
+			<thead>
+				<tr>
+					<th>사원 번호</th>
+					<th>사원 이름</th>
+					<th>부서 이름</th>
+					<th>담당</th>
+					<th>관리자</th>
+					<th>연봉</th>
+					<th>인센티브</th>
+					<th>입사일자</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr th:each='emp : ${data["resultList"]}' >
+					<td th:text='${emp["empNo"]}' ></td>
+					<td th:text='${emp["empName"]}'></td>
+					<td th:text='${emp["deptName"]}'></td>
+					<td th:text='${emp["empJob"]}'></td>
+					<td th:text='${emp["empMgr"]}'></td>
+					<td th:text='${emp["empSal"]}'></td>
+					<td th:text='${emp["empComm"]}'></td>
+					<td th:text='${emp["empHiredate"]}'></td>
+				</tr>
+			</tbody>
+		</table>
+		<!-- paginator 설정하는 부분  -->
+		<div align="right" style="width:80%">
+			<label for="setLimit">ROW</label>
+			<select id="setLimit">
+	            <option>5</option>
+	            <option>7</option>
+	            <option>10</option>
+	            <option>15</option>
+	        </select>
+	        <button onclick="mainPage()">설정</button>
+	        <label>, 총 ROW : </label><label id="setTotalCount"></label>
+        </div>
+        <!-- Pagination 부분  -->
+		<div class="pagination">
+			<a type="button" onclick="page('pre')">&laquo;</a>
+			<span th:each='no : ${data["paginator"]["slider"]}'> 
+				<a type="button" onclick="page(this)" 
+				   th:if='${no}==${data["paginator"]["page"]}' 
+				   th:text='${no}' th:class='active'></a> 
+				<a type="button" onclick="page(this)" 
+				   th:unless='${no}==${data["paginator"]["page"]}' 
+				   th:text='${no}'></a> 
+			</span>  
+			<a type="button" onclick="page('next')">&raquo;</a>
+		</div>
+		<!-- updatePage로 넘어갈때 사용 -->
+		<form id="empData" method="post">
+			<input type="hidden" name="empno" id="empno">
+		</form>
+		<!-- pagination 조작 시 사용 > mainPage로 이동 하여 emp정보를 다시 가져옴.  -->
+		<form id="pageData" method="post">
+			<input type="hidden" id="page"  name="page"  th:value=${data["paginator"]["page"]}>
+			<input type="hidden" id="limit" name="limit" th:value=${data["paginator"]["limit"]}>
+			<input type="hidden" id="nextPage" name="nextPage"  th:value=${data["paginator"]["nextPage"]}>
+			<input type="hidden" id="prePage"  name="prePage"   th:value=${data["paginator"]["prePage"]}>
+			<input type="hidden" id="totalCount" name="totalCount" th:value=${data["paginator"]["totalCount"]}>
+			<input type="hidden" id="totalPages" name="totalPages" th:value=${data["paginator"]["totalPages"]}>
+		</form>
+	</div>
+<script>
+	//사원 등록 페이지로 이동 하는 함수
+	var empno = 0;
+	var ename;
+	// DOM 구성 완료
+	$(document).ready(function() {
+		//alert("DOM");
+		//$('#empTable').rowover.onrowclick=empInsert();
+		// 테이블 ROW 별 클릭  >> 수정페이지, 삭제에 사용한다.
+		$('#empTable tr').click(function() {
+			var td = $(this).children();
+			//alert("click : "+td.eq(0).text());
+			empno = td.eq(0).text();
+			ename = td.eq(1).text();
+		})
+		// 행 설정 갯수 초기화 
+		$('#setLimit').val($('#limit').val());
+		// 총 행 갯수 초기화
+		$('#setTotalCount').text($('#totalCount').val());
+	});
+	// insert페이지로 이동 >> dept정보 가져옴, jobList 가져옴(단일화?를 위해)
+	function empInsert() {
+		//alert("empInsert 클릭");
+		location.href="/emp/insertPage";
+	}
+	// update 페이지 이동 >> dept정보 가져옴, jobList 가져옴(단일화?를 위해), emp 한명 정보 
+	function empUpdate() {
+		//alert("empno : "+empno);
+		if(empno) {
+			//alert("수정할 사원 이름 : "+ename);
+			if(window.confirm(ename+" 사원을 수정하시겠습니까?\n확인을 누르면 수정페이지로 이동합니다.")) {
+				$('#empno').val(empno);
+				$('#empData').attr('action','/emp/updatePage');
+				empno = 0;
+				ename = '';
+				$('#empData').submit();
+			} else {
+				empno = 0;
+				ename = '';
+			}
+		} else {
+			alert("수정할 사원을 클릭해주세요");
+		}
+	}
+	// 삭제 하기 전 확인 함수 >> 사원번호랑 사원 이름 입력해야 삭제 가능 >> 삭제 처리 함수로 이동 
+	function empDelete() {
+		//alert("empno : "+empno);
+		if(empno) {
+			//alert("삭제 할 사원 이름 : "+ename);
+			var answer = window.prompt(ename+' 사원을 삭제 하려면 다음과 같이 입력하세요\n사원번호/사원이름 : "'+empno+'/'+ename+'"');
+			if(answer != null && answer.length>0) {
+				var result = empno+"/"+ename;
+				if(answer == result) {
+					doDelete(empno);
+				} else {
+					alert("사원번호와 사원이름이 다릅니다.");
+				}
+			} 
+		} else {
+			alert("삭제 할 사원을 클릭해주세요");
+		}
+	}
+	// 삭제 처리함수 >> 사원 삭제 함.
+	function doDelete(pEmpNo) {
+		$.ajax({
+			type : 'post'
+			,url : '/emp/empDelete'
+			,data : "empno="+pEmpNo
+			,dataType : 'json'
+			,success : function(data) {
+				if(data.result) {
+					alert(data.msg);
+					location.reload();
+				} else {
+					alert(data.msg);
+				}
+			}
+			,error : function(xhr, status, error) {
+				alert(error);
+			}
+		});
+	}
+	//페이지 처리함수 >> 이전페이지, 다음페이지, 숫자..
+	function page(info) {
+		var page;
+		if(info=='pre') {
+			//alert("페이지 클릭 :"+$('#prePage').val());
+			page = $('#prePage').val();
+		} else if(info=='next') {
+			//alert("페이지 클릭 :"+$('#nextPage').val());
+			page = $('#nextPage').val();
+		} else {
+			//alert("페이지 클릭 :"+info.text);
+			page = info.text;
+		}
+		$('#page').val(page);
+		mainPage();
+	}
+	// ROW 설정, 페이지 이동 누르면 
+	function mainPage() {
+		var limit = $('#setLimit').val();
+		$('#limit').val(limit);
+		$('#pageData').attr('action','/emp/mainPage');
+		$('#pageData').submit();
+	}
+</script>
+</body>
+</html>

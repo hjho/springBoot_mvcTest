@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Thymleaf</title>
+<script type="text/javascript" src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+</head>
+<body>
+	<div align="center">
+		<h2>Emp Update</h2>
+		<button onclick="mainPage()">사원 조회 페이지</button>
+		<button onclick="empUpdate()">수정</button>
+		<form id="empForm">
+				 <fieldset style="width: 40%">
+  			<legend> 사원 수정 </legend>
+		<table>
+			<tr>
+				<td>부서이름 : </td>
+				<td>
+					<select id="deptno" name="deptno">
+                        <option value=''>Nothing selected</option>
+                        <option th:each="dept : ${deptList}"
+                                th:value='${dept["deptNo"]}' th:text='${dept["deptName"]}'>
+                        </option>
+                    </select>
+				</td>
+			</tr>
+			<tr>
+				<td>사원 번호 : </td>
+				<td><input type="text" name="empno" th:value='${empMap["empNo"]}' readonly></td>
+			</tr>
+			<tr>
+				<td>사원 이름 : </td>
+				<td><input type="text" name="ename" th:value='${empMap["empName"]}'></td>
+			</tr>
+			<tr>
+				<td>담당 : </td>
+				<td>
+					<input list="jobList" id="job" name="job">
+					<!-- 
+					<datalist id="jobList">
+						<option th:each="jobMap : ${jobList}" th:text='${jobMap["job"]}'>
+					</datalist>
+					 -->
+				</td>
+			</tr>
+			<tr>
+				<td>관리자 : </td>
+				<td><input type="text" name="mgr" th:value='${empMap["empMgr"]}'></td>
+			</tr>
+			<tr>
+				<td>연봉 : </td>
+				<td><input type="text" name="sal" th:value='${empMap["empSal"]}'></td>
+			</tr>
+			<tr>
+				<td>인센티브 : </td>
+				<td><input type="text" name="comm" th:value='${empMap["empComm"]}'></td>
+			</tr>
+			<tr>
+				<td>입사날짜 </td>
+				<td><input type="text" name="hiredate" th:value='${empMap["empHiredate"]}' readonly></td>
+			</tr>
+		</table>
+		</fieldset>
+		</form>
+	</div>
+<script>
+	$(document).ready(function() {
+		//$('#deptno').val('${empMap["deptNo"]}');
+		var deptno = [[${empMap["deptNo"]}]];
+		var job = '[[${empMap["empJob"]}]]';
+		//alert(result);
+		$('#deptno').val(deptno);
+		$('#job').val(job);
+	});
+	//사원 조회 페이지로 이동하는 함수
+	function mainPage() {
+		location.href="/emp/mainPage";
+	}
+	function empUpdate() {
+		//$('#empForm').submit();
+		var queryString = $("form[id=empForm]").serialize();
+		//alert("queryString : "+queryString);
+		
+		$.ajax({
+			type : 'post'
+			,url : '/emp/empUpdate'
+			,data : queryString
+			,dataType : 'json'
+			,success : function(data) {
+				if(data.result) {
+					alert(data.msg);
+					mainPage();
+				} else {
+					alert(data.msg);
+				}
+			}
+			,error : function(xhr, status, error) {
+				alert(error);
+			}
+		});
+	}
+</script>
+</body>
+</html>

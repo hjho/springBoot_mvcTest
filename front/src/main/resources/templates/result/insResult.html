@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html
+	xmlns:th="http://www.thymeleaf.org" 
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Insert Result Page</title>
+</head>
+<body>
+<script th:inline="javascript" >
+	var result = [[${result}]];
+	function test() {
+		if(result == 1) {
+			alert("등록 성공");
+			location.href="/emp/list";
+		}
+		else {
+			alert("등록 실패");
+			location.href="/emp/insertPage";
+		}
+		
+	}
+	test();
+</script>
+</body>
+</html>
