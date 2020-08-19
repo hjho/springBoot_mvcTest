@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.back.mapper.EmpMapper">
+	<select id="getEmpList" parameterType="Map" resultType="CamelMap"> 
+		SELECT empno as emp_no
+		     , ename as emp_name
+		     , job as emp_job
+		     , mgr as emp_mgr
+		     , sal as emp_sal
+		     , comm as emp_comm
+		     , e.deptno as dept_no
+		     , d.dname as dept_name
+		     , TO_CHAR(hiredate, 'yyyy-mm-dd') as emp_hiredate
+		  FROM emp e JOIN dept d
+		    ON e.deptno = d.deptno
+		<where>
+			<if test="empno != null">
+				AND empno = #{empno}
+			</if>
+		</where>
+	</select>
+	
+	<select id="getEmpPageList" parameterType="Map" resultType="CamelMap">
+		SELECT empno as emp_no
+		     , ename as emp_name
+		     , job as emp_job
+		     , mgr as emp_mgr
+		     , sal as emp_sal
+		     , comm as emp_comm
+		     , e.deptno as dept_no
+		     , d.dname as dept_name
+		     , TO_CHAR(hiredate, 'yyyy-mm-dd') as emp_hiredate
+		  FROM emp e JOIN dept d
+		    ON e.deptno = d.deptno
+		<where>
+			<if test="empno != null">
+				AND empno = #{empno}
+			</if>
+		</where>
+	</select>
+	
+	<select id="getJobList" resultType="CamelMap">
+		SELECT job FROM emp WHERE job != 'PRESIDENT'
+         GROUP BY job 
+	</select>
+	
+	<select id="getBankList" resultType="Bank">
+		SELECT acc_num
+		      ,mem_id
+		      ,mem_name
+		      ,mem_password
+		      ,balance
+		  FROM bank_member 
+	</select>
+	
+	<insert id="empInsert" parameterType="map">
+		<selectKey keyProperty="empno" resultType="int" order="BEFORE">
+			SELECT max(empno)+1 FROM emp
+		</selectKey>
+		INSERT INTO emp(empno   , ename   , job   , hiredate   , sal   , deptno)
+		         VALUES(#{empno}, #{ename}, #{job}, #{hiredate}, #{sal}, #{deptno})
+	</insert>
+	
+	<update id="empUpdate" parameterType="map">
+		UPDATE emp
+		<set>
+			<if test="ename != null and ename.length>0"> ename    = #{ename},    </if>
+			<if test="job != null and job.length>0">     job      = #{job},      </if>	
+			<if test="mgr != null and mgr.length>0">     mgr      = #{mgr},      </if>	
+			<if test="sal != null and sal.length>0">     sal      = #{sal},      </if>	
+			<if test="comm != null">   comm     = #{comm},     </if>	
+			<if test="deptno != null and deptno.length>0"> deptno   = #{deptno}    </if>		
+		</set> 
+		 WHERE empno=#{empno}
+	</update>
+	
+	<delete id="empDelete" parameterType="map">
+		DELETE FROM emp WHERE empno=#{empno}
+	</delete>
+</mapper> 
+
+
+
+
+
+

@@ -1,0 +1,19 @@
+server:
+  port: 8800
+  
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true  
+    
+spring:
+  datasource:
+    hikari:
+      driver-class-name: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
+      jdbcUrl: jdbc:log4jdbc:oracle:thin:@localhost:1521:orcl11
+      username: scott
+      password: tiger
+      connection-timeout: 20000
+      maximum-pool-size: 12
+      max-lifetime: 1200000
+      auto-commit: false
+      
